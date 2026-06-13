@@ -11,13 +11,17 @@ const ReactPaginate = (
   >
 ).default;
 
-interface Props {
+interface PaginationProps {
   pageCount: number;
   page: number;
   setPage: (page: number) => void;
 }
 
-export default function Pagination({ pageCount, page, setPage }: Props) {
+export default function Pagination({
+  pageCount,
+  page,
+  setPage,
+}: PaginationProps) {
   return (
     <ReactPaginate
       forcePage={page - 1}
