@@ -8,8 +8,7 @@ import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
 
 import { useNotes } from "../../hooks/useNotes";
-import { createNote, deleteNote } from "../../services/noteService";
-import { useQueryClient } from "@tanstack/react-query";
+
 import { useDebouncedCallback } from "use-debounce";
 
 export default function App() {
@@ -18,35 +17,20 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data } = useNotes(page, search);
-  const queryClient = useQueryClient();
+
+  const notes = data?.notes ?? [];
+  const totalPages = data?.totalPages ?? 0;
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     setSearch(value);
     setPage(1);
   }, 500);
-  const notes = data?.notes ?? [];
-  const totalPages = data?.totalPages ?? 0;
-
-  const handleCreate = async (data: { title: string; content: string }) => {
-    await createNote(data);
-
-    await queryClient.invalidateQueries({ queryKey: ["notes"] });
-
-    setIsModalOpen(false);
-  };
-
-  const handleDelete = async (id: string) => {
-    await deleteNote(id);
-
-    await queryClient.invalidateQueries({ queryKey: ["notes"] });
-  };
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox value={search} onChange={debouncedSearch} />
 
-        {/* ПАГИНАЦИЯ */}
         {totalPages > 1 && (
           <Pagination page={page} setPage={setPage} pageCount={totalPages} />
         )}
@@ -56,13 +40,11 @@ export default function App() {
         </button>
       </header>
 
-      {/* NOTE LIST */}
-      {notes.length > 0 && <NoteList notes={notes} onDelete={handleDelete} />}
+      <NoteList notes={notes} />
 
-      {/* MODAL */}
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm onSubmit={handleCreate} />
+          <NoteForm onClose={() => setIsModalOpen(false)} />
         </Modal>
       )}
     </div>
